@@ -56,10 +56,10 @@ public class MovieAnalyzer {
 		return movieCountByYear;
 	}
 
-	public Map<String, Integer> getMovieCountByGenre() {
-		Map <String, Integer> movieCountByGenre;
-		return movieCountByGenre;
-	}
+//	public Map<String, Integer> getMovieCountByGenre() {
+//		Map <String, Integer> movieCountByGenre;
+//		return movieCountByGenre;
+//	}
 
 	public static void main(String[] args) {
 		MovieAnalyzer movieAnalyzer;
@@ -67,7 +67,8 @@ public class MovieAnalyzer {
 			movieAnalyzer = new MovieAnalyzer("./resources/imdb_top_500.csv");
 		} catch(FileNotFoundException e) {
 			System.out.println("Input CSV File is not found.");
+			return;
 		}
-
+		System.out.println(movieAnalyzer.getMovieCountByYear());
 	}
 }

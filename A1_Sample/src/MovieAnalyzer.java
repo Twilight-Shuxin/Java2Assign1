@@ -15,12 +15,15 @@ public class MovieAnalyzer {
 	public static Integer stringToInteger(String string) {
 		int value = 0;
 		for(int i = 0; i < string.length(); i ++) {
+			if(string.charAt(i) == ',' && i != string.length() - 1) {
+				continue;
+			}
 			if(string.charAt(i) > '9' || string.charAt(i) < '0') {
-				System.out.println(string);
 				return Integer.valueOf(-1);
 			}
 			value = (int) (string.charAt(i) - '0') + value * 10;
 		}
+		//System.out.println(string + " " + value);
 		return Integer.valueOf(value);
 	}
 
@@ -31,10 +34,117 @@ public class MovieAnalyzer {
 		return result;
 	}
 
+	public static String solveEscaped(String string) {
+		string = string;
+		// No need to modify escaped character
+//		StringBuilder strResult = new StringBuilder("");
+//		int last = 0;
+//		for(int i = 0; i < string.length() - 1; i ++) {
+//			if(string.charAt(i) == '\"' && string.charAt(i) == '\"') {
+//				strResult.append(string.substring(last, i + 1));
+//				last = i + 2;
+//			}
+//		}
+//		strResult.append(string.substring(last));
+//		return strResult.toString();
+		return string;
+	}
+
+	public static boolean checkGenre(String genreCur, String genre) {
+		List <String> genres = Arrays.asList(genreCur.split(","));
+		for (int i = 0; i < genres.size(); i ++) {
+			genres.set(i, genres.get(i).strip());
+			if(genres.get(i).equals(genre))
+				return true;
+		}
+		return false;
+	}
+
+	public static int getRunTime(String string) {
+		int value = 0;
+		for(int i = 0; i < string.length(); i ++) {
+			if(string.charAt(i) > '9' || string.charAt(i) < '0') {
+				break;
+			}
+			value = (int) (string.charAt(i) - '0') + value * 10;
+		}
+		return Integer.valueOf(value);
+	}
+
+	public static int getOverviewLength(String string) {
+		return string.length();
+	}
+
+	public static List<List<String>> splitJoinStars(List<String> record, int id) {
+//		if(record.size() < id + 4) {
+//			for(int i = 0; i < record.size(); i ++)
+//				System.out.println(i + " " + record.get(i));
+//		}
+		List<String> items = Arrays.asList(
+				record.get(id),
+				record.get(id + 1),
+				record.get(id + 2),
+				record.get(id + 3)
+			);
+		for (int i = 0; i < items.size(); i ++)
+			items.set(i, items.get(i).strip());
+		List<List<String>> result = new ArrayList<List<String>>();
+		Collections.sort(items);
+		for (int i = 0; i < items.size(); i ++)
+			for (int j = i + 1; j < items.size(); j ++) {
+				List<String> joinItems = Arrays.asList(items.get(i), items.get(j));
+				result.add(joinItems);
+			}
+		return result;
+	}
+
+	public static List<String> splitStars(List<String> record, int id) {
+		return Arrays.asList(
+				record.get(id),
+				record.get(id + 1),
+				record.get(id + 2),
+				record.get(id + 3)
+		);
+	}
+
+	public static List<List<String>> itemJoin(List<String> items, List<String> commons) {
+		List<List<String>> results = new ArrayList<List<String>>();
+		for(int i = 0; i < items.size(); i ++) {
+			if(items.get(i).length() == 0)
+				continue;
+			List<String> itemMatched = new ArrayList<String>(Arrays.asList(items.get(i)));
+			//System.out.println(items.get(i) + " " + commons);
+			itemMatched.addAll(commons);
+			results.add(itemMatched);
+		}
+		return results;
+	}
+
+	public static String getAverageRatings(List<String> ratings) {
+		List<Float> ratingsFloat = new ArrayList<Float>();
+		double rating = 0;
+		for(int i = 0; i < ratings.size(); i ++) {
+			rating += Float.parseFloat(ratings.get(i));
+		}
+		rating /= ratings.size();
+		return String.valueOf(rating);
+	}
+
+	public static String getAverageGross(List<String> grosses) {
+		List<Integer> grossInt= new ArrayList<Integer>();
+		double gross = 0;
+		for(int i = 0; i < grosses.size(); i ++) {
+			gross += stringToInteger(grosses.get(i));
+		}
+		gross /= grosses.size();
+		return String.valueOf(gross);
+	}
+
 	public static List<String> readCSVRow(String line) {
-		List<String> record = new ArrayList<String>();
+		List<String> records = new ArrayList<String>();
 		int l = 0, recording = 0, waiting = 0;
 		char deLim = ',';
+
 		for(int r = 0; r < line.length(); r ++) {
 			if(recording == 0) {
 				if (line.charAt(r) == '\"') {
@@ -50,7 +160,7 @@ public class MovieAnalyzer {
 						recording = 1;
 					}
 					else if(line.charAt(r) == ',') {
-						record.add("");
+						records.add("");
 					}
 				}
 			}
@@ -59,10 +169,15 @@ public class MovieAnalyzer {
 						r == line.length() - 1
 					) {
 					if(line.charAt(r) != deLim) {
-						record.add(line.substring(l, r + 1).strip());
+						records.add(solveEscaped(line.substring(l, r + 1).strip()));
 					}
 					else {
-						record.add(line.substring(l, r).strip());
+						if(r < line.length() - 1 &&
+							line.charAt(r) == '\"' && line.charAt(r + 1) == '\"') {
+							r += 1;
+							continue;
+						}
+						records.add(solveEscaped(line.substring(l, r)));
 					}
 					if(deLim == '\"')
 						waiting = 1;
@@ -70,26 +185,31 @@ public class MovieAnalyzer {
 						waiting = 0;
 					deLim = ',';
 					recording = 0;
+					if(r == line.length() - 1 && line.charAt(r) == ',') {
+						records.add("");
+					}
 				}
 			}
 		}
-		return record;
+		return records;
 	}
 
 	public MovieAnalyzer(String csvFile) throws FileNotFoundException {
-		try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))) {
 			String line;
 			int header = 0;
 			while ((line = br.readLine()) != null) {
 				List<String> values = readCSVRow(line);
 				if(header == 0) {
+					//System.out.println(values);
 					for(int i = 0; i < values.size(); i ++) {
-					//System.out.println(values.get(i));
 						headers.put(values.get(i), Integer.valueOf(i));
 					}
 					header = 1;
 				}
-				else records.add(values);
+				else {
+					records.add(values);
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -120,33 +240,9 @@ public class MovieAnalyzer {
 	movies in that genre.
 	**/
 
-//	public static HashMap<String, Integer> sortByValue(HashMap<String, Integer> hm)
-//	{
-//		// Create a list from elements of HashMap
-//		List<Map.Entry<String, Integer> > list =
-//				new LinkedList<Map.Entry<String, Integer> >(hm.entrySet());
-//
-//		// Sort the list
-//		Collections.sort(list, new Comparator<Map.Entry<String, Integer> >() {
-//			public int compare(Map.Entry<String, Integer> o1,
-//			                   Map.Entry<String, Integer> o2)
-//			{
-//				return (o1.getValue()).compareTo(o2.getValue());
-//			}
-//		});
-//
-//		// put data from sorted list to hashmap
-//		HashMap<String, Integer> temp = new LinkedHashMap<String, Integer>();
-//		for (Map.Entry<String, Integer> aa : list) {
-//			temp.put(aa.getKey(), aa.getValue());
-//		}
-//		return temp;
-
-
 	public Map<String, Integer> getMovieCountByGenre() {
 		int genreId = headers.get("Genre");
-		Comparator<Integer> c = (c1, c2) -> c1 < c2 ? 1 : 0;
-		Map<String, Integer> sortedMovieCountByGenre = new HashMap<>();
+		Map<String, Integer> sortedMovieCountByGenre = new LinkedHashMap<>();
 		Map <String, Integer> movieCountByGenre =
 			records.stream().flatMap(r -> Stream.of(r.get(genreId)))
 			.flatMap(r -> Stream.of(splitStringToList(r)))
@@ -167,6 +263,152 @@ public class MovieAnalyzer {
 			sortedMovieCountByGenre.put(entry.getKey(), entry.getValue());
 		}
 		return sortedMovieCountByGenre;
+	}
+
+	/**
+	 * If two people are the stars for the same movie, then the number of movies that they co-starred increases by 1.
+	 * This method returns a <[star1, star2], count> map, where the key is a list of names of the stars while the
+	 * value is the number of movies that they have co-starred in. Note that the length of the key is 2 and the names
+	 * of the stars should be sorted by alphabetical order in the list.
+	 */
+
+	public Map<List<String>, Integer> getCoStarCount() {
+		int starId = headers.get("Star1");
+		Map<String, Integer> sortedMovieCountByGenre = new HashMap<>();
+		Map <List<String>, Integer> coStarCount =
+				records.stream().flatMap(r -> Stream.of(splitJoinStars(r, starId)))
+						.flatMap(List::stream)
+						.collect(groupingBy(r -> r, Collectors.summingInt(r -> 1)));
+		return coStarCount;
+	}
+
+	/**
+	 * This method returns the top K movies (paramter top_k) by the given criterion (paramter by)
+	 */
+	public List<String> getTopMovies(int top_k, String by) {
+		int opt = 0;
+		if(by == "runtime") {
+			opt = 0;
+			by = "Runtime";
+		}
+		else {
+			opt = 1;
+			by = "Overview";
+		}
+		int nameId = headers.get("Series_Title"), rankId = headers.get(by);
+		int finalOpt = opt;
+		List<String> topMovies =
+				records.stream().flatMap(r -> Stream.of(Arrays.asList(r.get(nameId), r.get(rankId))))
+				.sorted(
+					(r1, r2) -> {
+						int cmp = 0;
+						if(finalOpt == 0) {
+							cmp = -(getRunTime(r1.get(1)) - getRunTime(r2.get(1)));
+						}
+						else cmp = -(getOverviewLength(r1.get(1)) - getOverviewLength(r2.get(1)));
+						if(cmp == 0) {
+							cmp = r1.get(0).compareTo(r2.get(0));
+						}
+						return cmp;
+					}
+				).flatMap(r -> Stream.of(r.get(0)))
+				.limit(top_k)
+				.collect(Collectors.toList());
+//		for(int i = 0; i < topMovies.size(); i ++)
+//			System.out.println(topMovies.get(i).get(1) + " " + topMovies.get(i).get(0));
+		return topMovies;
+	}
+
+	/*
+		This method returns the top K stars (paramter top_k) by the given criterion (paramter by). Specifically,
+		by="rating": the results should be stars sorted by descending order of the average rating of the
+		movies that s/he have starred in.
+		by="gross": the results should be stars sorted by descending order of the average gross of the
+		movies that s/he have starred in.
+		Note that the results should be a list of star names. If two stars have the same average rating or gross, then
+		they should be sorted by the alphabetical order of their names.
+	*/
+
+	public List<String> getTopStars(int top_k, String by) {
+		int opt = 0;
+		if(by == "rating") {
+			opt = 0;
+			by = "IMDB_Rating";
+		}
+		else {
+			opt = 1;
+			by = "Gross";
+		}
+		int rankId = headers.get(by), starId = headers.get("Star1");
+		int finalOpt = opt;
+		List<String> topActors = records.stream()
+				.flatMap(r -> {
+					if(r.get(rankId).length() == 0)
+						return Stream.of();
+					List<String> stars = splitStars(r, starId);
+					return Stream.of(itemJoin(stars, Arrays.asList(r.get(rankId))));
+				})
+				.flatMap(List::stream)
+				.collect(groupingBy(r -> r.get(0), toList()
+				)).entrySet().stream()
+				.flatMap(r -> {
+					List <String> scores = new ArrayList<>();
+					List <List<String>> namesWithScores = r.getValue();
+                  for(int i = 0; i < namesWithScores.size(); i ++)
+                      scores.add(namesWithScores.get(i).get(1));
+					Map.Entry<String, List<String>> e =
+							new HashMap.SimpleEntry<String, List<String>>
+									(r.getKey(), scores);
+					return Stream.of(e);
+				})
+				.flatMap(r -> {
+							return Stream.of(Arrays.asList(r.getKey(), finalOpt == 0 ?
+									getAverageRatings(r.getValue()) : getAverageGross(r.getValue())));
+						}
+				).sorted((r1, r2) -> {
+					double doubleResult = Double.parseDouble(r2.get(1)) - Double.parseDouble(r1.get(1));
+					int result = doubleResult > 0 ? 1 : -1;
+					if(Math.abs(doubleResult) < 1e-7)
+						result = r1.get(0).compareTo(r2.get(0));
+					return result;
+				}
+				).limit(top_k)
+				.flatMap(r -> Stream.of(r.get(0)))
+				.collect(toList());
+		return topActors;
+	}
+
+	/**
+	 This method searches movies based on three criterion:
+	 genre: genre of the movie
+	 min_rating: the rating of the movie should >= min_rating
+	 max_runtime: the runtime (min) of the movie should <= max_runtime
+	 Note that the results should be a list of movie titles that meet the
+	 given criteria, and sorted by alphabetical
+	 order of the titles.
+	 */
+	public List<String> searchMovies(String genre, float min_rating, int max_runtime) {
+		int genreId = headers.get("Genre"), nameId = headers.get("Series_Title");
+		int ratingId = headers.get("IMDB_Rating"), runtimeId = headers.get("Runtime");
+		List<String> satisfyingMovies = records.stream()
+			.flatMap(r -> {
+					String genreCur = r.get(genreId);
+					String ratingCur = r.get(ratingId), runtimeCur = r.get(runtimeId);
+					if( genreCur.length() == 0 ||
+						ratingCur.length() == 0 ||
+						runtimeCur.length() == 0
+					) return Stream.of();
+					if(!checkGenre(genreCur, genre))
+						return Stream.of();
+					if(getRunTime(runtimeCur) > max_runtime)
+						return Stream.of();
+					if(Float.parseFloat(ratingCur) < min_rating)
+						return Stream.of();
+					return Stream.of(r.get(nameId));
+				}
+			).sorted((r1, r2) -> r1.compareTo(r2))
+			.collect(toList());
+		return satisfyingMovies;
 	}
 
 	public static void main(String[] args) {

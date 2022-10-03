@@ -38,11 +38,11 @@ public class MovieAnalyzerLocalTest {
     static void checkDeclarations() {
         MethodEntity[] movieAnalyzerMethods = {
                 new MethodEntity("getMovieCountByYear", Map.class),
-                //new MethodEntity("getMovieCountByGenre", Map.class),
-                //new MethodEntity("getCoStarCount", Map.class),
-                //new MethodEntity("getTopMovies", List.class, int.class, String.class),
-                //new MethodEntity("getTopStars", List.class, int.class, String.class),
-                //new MethodEntity("searchMovies", List.class, String.class, float.class, int.class)
+                new MethodEntity("getMovieCountByGenre", Map.class),
+                new MethodEntity("getCoStarCount", Map.class),
+                new MethodEntity("getTopMovies", List.class, int.class, String.class),
+                new MethodEntity("getTopStars", List.class, int.class, String.class),
+                new MethodEntity("searchMovies", List.class, String.class, float.class, int.class)
         };
         List<String> errorMessages = new ArrayList<>();
         for (MethodEntity m : movieAnalyzerMethods) {
@@ -198,7 +198,6 @@ public class MovieAnalyzerLocalTest {
             fail();
         }
     }
-/*
     @Test
     void testGetCoStarCount() {
         try {
@@ -250,6 +249,7 @@ public class MovieAnalyzerLocalTest {
             fail();
         }
     }
+
 
     @Test
     void testGetTopMoviesOverviewWithoutOrder() {
@@ -499,5 +499,4 @@ public class MovieAnalyzerLocalTest {
         }
     }
 
- */
 }
